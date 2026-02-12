@@ -1,0 +1,42 @@
+# GRPO Training Configuration for Text-to-SQL
+# Dataset: Spider (https://yale-lily.github.io/spider)
+
+model:
+  name: "Qwen/Qwen2.5-Coder-3B-Instruct"
+  quantization: "4bit"          # NF4 quantization for memory efficiency
+  lora_r: 16                    # LoRA rank
+  lora_alpha: 32                # LoRA scaling factor
+  lora_dropout: 0.05
+
+data:
+  # Spider dataset paths (download from https://yale-lily.github.io/spider)
+  train_file: "data/spider/train_spider.json"
+  dev_file: "data/spider/dev.json"
+  db_dir: "data/spider/database"
+  max_train_samples: null       # Set to integer to limit training data
+  max_eval_samples: 100         # Eval on subset for speed
+
+grpo:
+  group_size: 4                 # K: candidates per question
+  clip_epsilon: 0.2             # PPO clipping range [1-eps, 1+eps]
+  kl_coeff: 0.05                # KL penalty coefficient
+  temperature: 0.7              # Sampling temperature for generation
+  max_new_tokens: 256           # Max SQL length in tokens
+
+reward:
+  correct_execution: 1.0        # Correct SQL result
+  valid_but_wrong: 0.1          # Valid SQL, wrong result
+  invalid_sql: -0.5             # SQL execution error
+  format_bonus: 0.2             # Proper ```sql``` formatting
+  partial_match_bonus: 0.3      # Table/column overlap with gold
+
+training:
+  num_epochs: 2
+  learning_rate: 5.0e-6
+  weight_decay: 0.01
+  seed: 42
+  eval_every: 50                # Evaluate every N steps
+  save_every: 100               # Save checkpoint every N steps
+
+output:
+  dir: "outputs/grpo"
